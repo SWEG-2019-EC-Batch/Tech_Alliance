@@ -8,6 +8,7 @@ Outputs: Total course mark (formatted to one decimal place) and status ("Pass" o
     step3: Add the weighted marks together to calculate the overall course total.
     step4: Format the output to display the total with one decimal place.
     step5: Use the conditional operator to check if the total is greater than or equal to 50, printing "Pass" if true and "Fail" otherwise.
+    */
 
     
 #include <iostream>
