@@ -1,87 +1,99 @@
 #include <iostream>
 using namespace std;
 
-const int ROUTE_COUNT = 5;
-const char* routeNames[ROUTE_COUNT] = {
-    "hawassa", "Diredawa", "bahirdar", "mekele", "Jimma"
-};
-const float routeFares[ROUTE_COUNT] = {300, 450, 700, 900, 550};
-
-void showRoutes() {
-    cout << "Available Routes\n";
-    for (int i = 0; i < ROUTE_COUNT; i++) {
-        cout << i + 1 << ". Addis Ababa  ->  " << routeNames[i];
-        // keep original column alignment
-        int pad = 12 - (int)string(routeNames[i]).length();
-        for (int p = 0; p < pad; p++) cout << ' ';
-        cout << " : " << (int)routeFares[i] << "\n";
-    }
-    
-}
-
-float ageDiscount(int age, float fare) {
-    if (age < 12) return fare * 0.50;
-    if (age > 60) return fare * 0.25;
-    return 0;
-}
-
-float baggageFee(float weight) {
-    return (weight > 20) ? (weight - 20) * 10 : 0;
-}
-
-void printReceipt(float fare, float discount, float studentDiscount,
-                  float extra, float total) {
-    cout << "\nTICKET SUMMARY \n";
-    cout << "Base fare            : " << fare << endl;
-    cout << "Age discount         : " << discount << endl;
-    cout << "Student discount(30%): " << studentDiscount << endl;
-    cout << "Extra baggage fee    : " << extra << endl;
-    cout << "------------------------------------\n";
-    cout << "TOTAL FARE           : " << total << endl;
-    
-}
-
 int main() {
-    int routeChoice, avaSeat, age, isStudent;
-    float bagWeight;
+    // ---------- Constants ----------
+    const double FREE_BAGGAGE_KG  = 20;     // free baggage allowance
+    const double EXTRA_RATE       = 10;     // birr per extra kg
+    const double SENIOR_DISCOUNT  = 0.25;   // age 60 and above
+    const double CHILD_DISCOUNT   = 0.50;   // age 12 and below
+    const double STUDENT_DISCOUNT = 0.15;   // students
 
-    // Route selection
-    showRoutes();
-    cout << "Choose your route (1-5): ";
-    cin >> routeChoice;
+    // ---------- Variables ----------
+    int    available_seats;
+    double base_fare, baggage_weight, age;
+    char   is_student;
+    double extra_weight = 0, extra_fare = 0;
+    double discount_rate = 0, discount_amount = 0;
+    double subtotal, final_fare;
+    int    discount_type = 0;   // 0 = none, 1 = senior, 2 = child, 3 = student
 
-    if (routeChoice < 1 || routeChoice > ROUTE_COUNT) {
-        cout << "Invalid route selected. Exiting.\n";
-        return 1;
-    }
-    float fare = routeFares[routeChoice - 1];
+    // ---------- Header ----------
+    cout << "=====================================" << endl;
+    cout << "         BUS TICKET SYSTEM           " << endl;
+    cout << "=====================================" << endl;
 
-    // Seat check
-    cout << "Enter Number of available seat: ";
-    cin >> avaSeat;
+    // ---------- Seats ----------
+    cout << "Available seats: ";
+    cin >> available_seats;
 
-    if (avaSeat <= 0) {
-        cout << "All seats are reserved" << endl;
+    if (available_seats <= 0) {
+        cout << endl << "Sorry, there are no available seats!" << endl;
         return 0;
     }
 
-    cout << "Enter your age: ";
+    // ---------- Passenger details ----------
+    cout << "Base trip fare (birr): ";
+    cin >> base_fare;
+    cout << "Baggage weight (kg): ";
+    cin >> baggage_weight;
+    cout << "Passenger age: ";
     cin >> age;
+    cout << "Are you a student? (y/n): ";
+    cin >> is_student;
 
-    cout << "Enter baggage weight (kg): ";
-    cin >> bagWeight;
+    // ---------- Extra baggage ----------
+    if (baggage_weight > FREE_BAGGAGE_KG) {
+        extra_weight = baggage_weight - FREE_BAGGAGE_KG;
+        extra_fare = extra_weight * EXTRA_RATE;
+    }
+    subtotal = base_fare + extra_fare;
 
-    float discount = ageDiscount(age, fare);
+    // ---------- Discount: the best single discount is applied ----------
+    if (age >= 60) {
+        discount_rate = SENIOR_DISCOUNT;
+        discount_type = 1;
+    }
+    else if (age <= 12) {
+        discount_rate = CHILD_DISCOUNT;
+        discount_type = 2;
+    }
 
-    cout << "Are you a student? (1 = Yes, 0 = No): ";
-    cin >> isStudent;
-    float studentDiscount = (isStudent == 1) ? fare * 0.30 : 0;
+    if ((is_student == 'y' || is_student == 'Y') && STUDENT_DISCOUNT > discount_rate) {
+        discount_rate = STUDENT_DISCOUNT;
+        discount_type = 3;
+    }
 
-    float extra = baggageFee(bagWeight);
+    discount_amount = subtotal * discount_rate;
+    final_fare = subtotal - discount_amount;
 
-    float total = (fare - discount - studentDiscount) + extra;
-    if (total < 0) total = 0;
+    // ---------- Receipt ----------
+    cout << endl;
+    cout << "=====================================" << endl;
+    cout << "              RECEIPT                " << endl;
+    cout << "=====================================" << endl;
+    cout << "Base fare:\t\t" << base_fare << " birr" << endl;
 
-    printReceipt(fare, discount, studentDiscount, extra, total);
+    if (extra_weight > 0) {
+        cout << "Extra baggage:\t\t" << extra_weight << " kg x " << EXTRA_RATE
+             << " = " << extra_fare << " birr" << endl;
+    }
+
+    cout << "Subtotal:\t\t" << subtotal << " birr" << endl;
+    cout << "-------------------------------------" << endl;
+    cout << "Discount:\t\t";
+    if (discount_type == 1)      cout << "Senior (60+)" << endl;
+    else if (discount_type == 2) cout << "Child (12 and under)" << endl;
+    else if (discount_type == 3) cout << "Student" << endl;
+    else                         cout << "None" << endl;
+    cout << "Discount amount:\t-" << discount_amount << " birr" << endl;
+    cout << "=====================================" << endl;
+    cout << "TOTAL TO PAY:\t\t" << final_fare << " birr" << endl;
+    cout << "=====================================" << endl;
+
+    available_seats--;
+    cout << "Seats left: " << available_seats << endl;
+    cout << "Thank you for travelling with us!" << endl;
+
     return 0;
 }
